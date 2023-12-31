@@ -1,5 +1,5 @@
 [package]
-name = "termpix"
+name = "termimg"
 version = "0.1.0"
 
 [dependencies]

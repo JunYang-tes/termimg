@@ -843,6 +843,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "termimg"
+version = "0.1.0"
+dependencies = [
+ "ansi_term",
+ "atty",
+ "base64 0.21.2",
+ "docopt",
+ "image",
+ "infer",
+ "nix",
+ "resvg",
+ "seek_bufread",
+ "serde",
+ "serde_derive",
+ "sixel-rs",
+ "terminal_size",
+ "termion",
+ "usvg",
+]
+
+[[package]]
 name = "terminal_size"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -863,27 +884,6 @@ dependencies = [
  "numtoa",
  "redox_syscall",
  "redox_termios",
-]
-
-[[package]]
-name = "termpix"
-version = "0.1.0"
-dependencies = [
- "ansi_term",
- "atty",
- "base64 0.21.2",
- "docopt",
- "image",
- "infer",
- "nix",
- "resvg",
- "seek_bufread",
- "serde",
- "serde_derive",
- "sixel-rs",
- "terminal_size",
- "termion",
- "usvg",
 ]
 
 [[package]]

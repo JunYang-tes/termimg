@@ -7,7 +7,7 @@ extern crate usvg;
 extern crate serde_derive;
 extern crate seek_bufread;
 extern crate terminal_size;
-extern crate termpix;
+extern crate termimg;
 
 use std::{
     io::{BufReader, Cursor, Read},
@@ -31,12 +31,12 @@ use graphic::Graphic;
 use utils::prepare_img;
 
 const USAGE: &'static str = "
-    termpix : display image from <file> in an terminal
+    termimg : display image from <file> in an terminal
 
     Usage:
-      termpix <file> [--protocol <protocol>]
-      termpix --stdio
-      termpix --list-protocol
+      termimg <file> [--protocol <protocol>]
+      termimg --stdio
+      termimg --list-protocol
 
     Options:
       --protocol <protocol>         One of kitty,mosaic,auto, [Default:auto]

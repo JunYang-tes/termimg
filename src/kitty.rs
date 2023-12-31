@@ -101,12 +101,12 @@ fn show_by_shared_memory(img: &DynamicImage, size: Option<TerminalSize>) -> Resu
         })
         .action(Action::ImmediatelyShow)
         .transmission_type(TransmissionType::SharedMemory(
-            "__termpix_image_object__".to_owned(),
+            "__termimg_image_object__".to_owned(),
             (w as u16, h as u16),
         ));
-    let _ = nix::sys::mman::shm_unlink("__termpix_image_object__");
+    let _ = nix::sys::mman::shm_unlink("__termimg_image_object__");
     let id = nix::sys::mman::shm_open(
-        "__termpix_image_object__",
+        "__termimg_image_object__",
         unsafe { nix::fcntl::OFlag::from_bits_unchecked(O_CREAT | O_RDWR) },
         nix::sys::stat::Mode::from_bits_truncate(S_IRUSR | S_IWUSR | S_IXUSR),
     );

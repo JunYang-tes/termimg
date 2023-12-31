@@ -2,7 +2,7 @@ use std::{cmp::min, fmt::Write};
 
 extern crate termion;
 use image::{imageops::FilterType, GenericImageView};
-use termpix::print_image;
+use termimg::print_image;
 
 use self::termion::terminal_size;
 

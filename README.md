@@ -1,4 +1,4 @@
-# termpix
+# termimg
 A terminal image viewer.
 Supported graphic protocols are :
 1. Kitty's protocol
@@ -8,12 +8,12 @@ Supported graphic protocols are :
 
 Usage:
 ```
-    termpix : display image from <file> in an terminal
+    termimg : display image from <file> in an terminal
 
     Usage:
-      termpix <file> [--protocol <protocol>]
-      termpix --stdio
-      termpix --list-protocol
+      termimg <file> [--protocol <protocol>]
+      termimg --stdio
+      termimg --list-protocol
 
     Options:
       --protocol <protocol>         One of kitty,mosaic,auto, [Default:auto]
