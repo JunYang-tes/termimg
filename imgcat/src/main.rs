@@ -7,7 +7,7 @@ extern crate usvg;
 extern crate serde_derive;
 extern crate seek_bufread;
 extern crate terminal_size;
-extern crate termimg;
+extern crate imgcat;
 
 use std::{
     io::{BufReader, Cursor, Read},

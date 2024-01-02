@@ -1,5 +1,5 @@
 [package]
-name = "termimg"
+name = "imgcat"
 version = "0.1.0"
 
 [dependencies]
