@@ -46,7 +46,7 @@ const USAGE: &'static str = "
 #[derive(Debug, Deserialize)]
 struct Args {
     flag_protocol: Option<String>,
-    flag_list_protocl: Option<bool>,
+    flag_list_protocol: Option<bool>,
     arg_file: Option<String>,
 }
 
@@ -60,7 +60,7 @@ fn main() {
     let args: Args = Docopt::new(USAGE)
         .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
-    if args.flag_list_protocl.is_some() {
+    if args.flag_list_protocol.is_some() {
         for g in viewers.iter() {
             println!(
                 "{} is {} supported",
