@@ -5,9 +5,8 @@ extern crate resvg;
 extern crate usvg;
 #[macro_use]
 extern crate serde_derive;
-extern crate seek_bufread;
-extern crate terminal_size;
-extern crate imgcat;
+// extern crate seek_bufread;
+// extern crate terminal_size;
 
 use std::{
     io::{BufReader, Cursor, Read},
@@ -17,18 +16,18 @@ use std::{
 use docopt::Docopt;
 use image::*;
 use infer::Type;
-use terminal_size::{terminal_size, Height, Width};
+// use terminal_size::{terminal_size, Height, Width};
 
-mod apc;
-mod graphic;
-mod iterm;
-mod kitty;
-mod mosaic;
-mod sixel;
-mod term;
-mod utils;
-use graphic::Graphic;
-use utils::prepare_img;
+// mod apc;
+// mod graphic;
+// mod iterm;
+// mod kitty;
+// mod mosaic;
+// mod sixel;
+// mod term;
+// mod utils;
+// use graphic::Graphic;
+// use utils::prepare_img;
 
 const USAGE: &'static str = "
     termimg : display image from <file> in an terminal
@@ -51,11 +50,11 @@ struct Args {
 }
 
 fn main() {
-    let viewers: Vec<Box<dyn Graphic>> = vec![
-        Box::new(crate::kitty::Kitty {}),
-        Box::new(crate::iterm::Iterm {}),
-        Box::new(crate::sixel::Sixel {}),
-        Box::new(crate::mosaic::Mosaic {}),
+    let viewers: Vec<Box<dyn termimg::graphic::Graphic>> = vec![
+        Box::new(termimg::kitty::Kitty {}),
+        Box::new(termimg::iterm::Iterm {}),
+        Box::new(termimg::sixel::Sixel {}),
+        //Box::new(crate::mosaic::Mosaic {}),
     ];
     let args: Args = Docopt::new(USAGE)
         .and_then(|d| d.deserialize())
@@ -74,7 +73,7 @@ fn main() {
         .expect("No viewer specified");
     let img = if args.arg_file.is_some() {
         let path = args.arg_file.unwrap();
-        prepare_img(&path, &viewer.size()).unwrap()
+        termimg::utils::prepare_img(&path, &viewer.size()).unwrap()
     } else {
         read_img_from_stdio().unwrap()
     };
@@ -111,7 +110,10 @@ fn get_image_format(typ: &Type) -> Option<ImageFormat> {
         _ => None,
     }
 }
-fn get_viewer(viewers: &Vec<Box<dyn Graphic>>, name: String) -> Option<&Box<dyn Graphic>> {
+fn get_viewer(
+    viewers: &Vec<Box<dyn termimg::graphic::Graphic>>,
+    name: String,
+) -> Option<&Box<dyn termimg::graphic::Graphic>> {
     if name == "auto" {
         for v in viewers.iter() {
             if v.supported() {
