@@ -2,9 +2,7 @@ extern crate base64;
 use image::GenericImageView;
 
 use self::base64::Engine;
-use std::{
-    fmt::Write,
-};
+use std::fmt::Write;
 
 use crate::graphic::Graphic;
 
@@ -14,7 +12,7 @@ impl Graphic for Iterm {
         "iterm"
     }
 
-    fn display(&self, img: &image::DynamicImage) -> Result<(), String> {
+    fn display(&self, img: &image::DynamicImage) -> Result<(), Box<dyn std::error::Error>> {
         let mut content = vec![];
         let _ = img.write_to(&mut content,image::ImageOutputFormat::Png);
         let eng = base64::engine::general_purpose::STANDARD;
@@ -22,10 +20,11 @@ impl Graphic for Iterm {
         let size = encoded.len();
         let mut str = String::from("\x1b]1337;");
         let (w, h) = img.dimensions();
-        let _ = write!(&mut str, "File=size={};width={}px;height={}px;inline=1:{}\x07", 
+        write!(&mut str, "File=size={};width={}px;height={}px;inline=1:{}\x07", 
                        size,
                        w,
-                       h,encoded);
+                       h,encoded)
+            .map_err(|err| Box::new(err))?;
         println!("{}",str);
         Ok(())
     }

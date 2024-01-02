@@ -1,6 +1,7 @@
 use self::termion::terminal_size;
 use self::termion::terminal_size_pixels;
 use image::DynamicImage;
+use std::error::Error;
 extern crate termion;
 #[derive(Debug, Clone)]
 pub struct TerminalSize {
@@ -9,6 +10,10 @@ pub struct TerminalSize {
     pub cols: u16,
     pub rows: u16,
 }
+
+
+pub type DisplayResult = Result<(), Box<dyn Error>>;
+
 pub trait Graphic {
     fn name(&self) -> &'static str;
     fn size(&self) -> Option<TerminalSize> {
@@ -25,6 +30,6 @@ pub trait Graphic {
             });
         }
     }
-    fn display(&self, img: &DynamicImage) -> Result<(), String>;
+    fn display(&self, img: &DynamicImage) -> DisplayResult;
     fn supported(&self) -> bool;
 }

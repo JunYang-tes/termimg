@@ -1,4 +1,5 @@
 use std::{
+    error::Error,
     fs::File,
     io::{stdout, Read, Stdin, Write},
     os::fd::FromRawFd,
@@ -15,9 +16,9 @@ use self::base64::Engine;
 use self::nix::libc::O_RDWR;
 use self::nix::libc::{O_CREAT, S_IROTH, S_IWUSR};
 use self::nix::libc::{S_IRUSR, S_IXUSR};
+use self::termion::cursor::DetectCursorPos;
 use self::termion::raw::IntoRawMode;
 use image::{DynamicImage, EncodableLayout, GenericImageView};
-use self::termion::cursor::DetectCursorPos;
 
 use crate::{
     apc::{ControlValue, APC},
@@ -25,13 +26,21 @@ use crate::{
     utils::{get_image, has_alpha, prepare_img},
 };
 
+#[derive(thiserror::Error, Debug)]
+enum KittyError {
+    #[error("Kitty is not supported")]
+    Unsupported,
+    #[error("Failed to create shared memory")]
+    FailedToCreateSharedMem,
+}
+
 pub struct Kitty;
 impl Graphic for Kitty {
-    fn display(&self, img: &DynamicImage) -> Result<(), String> {
+    fn display(&self, img: &DynamicImage) -> Result<(), Box<dyn Error>> {
         let terminal_size = self.size();
         let fns: [(
             bool,
-            fn(&DynamicImage, Option<TerminalSize>) -> Result<(), String>,
+            fn(&DynamicImage, Option<TerminalSize>) -> Result<(), Box<dyn Error>>,
         ); 2] = [
             (is_shared_mem_supported(), show_by_shared_memory),
             (is_direct_supported(), show_by_direct_data),
@@ -44,7 +53,7 @@ impl Graphic for Kitty {
                 }
             }
         }
-        Err("Unsupported".to_owned())
+        Err(Box::new(KittyError::Unsupported))
     }
 
     fn supported(&self) -> bool {
@@ -68,7 +77,10 @@ fn set_showing_position(size: TerminalSize, img_width: u32) -> () {
     let cell_index = (left / cell_width) as u16;
     horizental_move_cur(cell_index);
 }
-fn show_by_direct_data(img: &DynamicImage, size: Option<TerminalSize>) -> Result<(), String> {
+fn show_by_direct_data(
+    img: &DynamicImage,
+    size: Option<TerminalSize>,
+) -> Result<(), Box<dyn Error>> {
     let (w, h) = img.dimensions();
     if size.is_some() {
         set_showing_position(size.unwrap(), w);
@@ -88,7 +100,10 @@ fn show_by_direct_data(img: &DynamicImage, size: Option<TerminalSize>) -> Result
     Ok(())
 }
 
-fn show_by_shared_memory(img: &DynamicImage, size: Option<TerminalSize>) -> Result<(), String> {
+fn show_by_shared_memory(
+    img: &DynamicImage,
+    size: Option<TerminalSize>,
+) -> Result<(), Box<dyn Error>> {
     let (w, h) = img.dimensions();
     if size.is_some() {
         set_showing_position(size.unwrap(), w);
@@ -109,26 +124,20 @@ fn show_by_shared_memory(img: &DynamicImage, size: Option<TerminalSize>) -> Resu
         "__termimg_image_object__",
         unsafe { nix::fcntl::OFlag::from_bits_unchecked(O_CREAT | O_RDWR) },
         nix::sys::stat::Mode::from_bits_truncate(S_IRUSR | S_IWUSR | S_IXUSR),
-    );
-    if id.is_err() {
-        eprintln!("{:?}", id);
-        Err("Failed to create mem".to_owned())
-    } else {
-        let mut file = unsafe { File::from_raw_fd(id.unwrap()) };
-        file.write(img.to_bytes().as_bytes())
-            .map_err(|err| err.to_string())
-            .map(|_| {
-                let _ = trans.transfer();
-            })
-    }
+    )?;
+    let mut file = unsafe { File::from_raw_fd(id) };
+    file.write(img.to_bytes().as_bytes())
+        .map_err(|err| Box::new(err))?;
+    trans.transfer();
+    Ok(())
 }
 
 fn horizental_move_cur(u: u16) {
     let mut stdout = stdout().lock().into_raw_mode().unwrap();
     let pos = stdout.cursor_pos();
     let _ = if pos.is_ok() {
-        let (_,y) = pos.unwrap();
-        write!(stdout,"{}",self::termion::cursor::Goto(u,y))
+        let (_, y) = pos.unwrap();
+        write!(stdout, "{}", self::termion::cursor::Goto(u, y))
     } else {
         println!("");
         write!(stdout, "{}", self::termion::cursor::Right(u))

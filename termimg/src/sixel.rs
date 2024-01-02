@@ -5,24 +5,32 @@ use std::path::Path;
 use self::sixel_rs::sys::PixelFormat;
 use image::{DynamicImage, GenericImageView};
 
-use crate::graphic::Graphic;
+use crate::graphic::{DisplayResult, Graphic};
 use crate::term::{self, write};
-use crate::utils::{get_image, prepare_img, has_alpha};
+use crate::utils::{get_image, has_alpha, prepare_img};
 //https://vt100.net/docs/vt3xx-gp/chapter14.html
 // xterm -ti vt340
+#[derive(thiserror::Error, Debug)]
+enum SixelError {
+    #[error("Failed to initialize encoder")]
+    FailedToGetEncoder,
+    #[error("Faield to encode")]
+    FailedToEncode,
+}
+
 pub struct Sixel;
 impl Graphic for Sixel {
     fn name(&self) -> &'static str {
         "sixel"
     }
 
-    fn display(&self, img: &DynamicImage) -> Result<(), String> {
+    fn display(&self, img: &DynamicImage) -> DisplayResult {
         let terminal_size = self.size();
         let encoder = sixel_rs::encoder::Encoder::new();
         let tmp_file = Path::new("/tmp/sixel.output");
         let _ = std::fs::remove_file(tmp_file);
         match encoder {
-            Err(_) => Err("Failed to create sixel encoder".to_owned()),
+            Err(err) => Err(Box::new(SixelError::FailedToGetEncoder)),
             Ok(encoder) => {
                 let (w, h) = img.dimensions();
                 encoder.set_output(&tmp_file);
@@ -38,7 +46,7 @@ impl Graphic for Sixel {
                             })
                             .pixels(img.to_bytes()),
                     )
-                    .map_err(|err| "Encode faield".to_owned());
+                    .map_err(|_| -> DisplayResult { Err(Box::new(SixelError::FailedToEncode)) });
                 let mut file = std::fs::File::open(tmp_file).unwrap();
                 std::io::copy(&mut file, &mut stdout().lock());
                 Ok(())
